@@ -1,12 +1,20 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 public class MathApp extends JFrame {
     final static int maxGap = 20;
-    JButton applyButton = new JButton("Submit");
+    JButton submitBtn = new JButton("Submit");
     GridLayout experimentLayout = new GridLayout(0,2);
-    JTextField nonEditTxt = new JTextField();
+    JTextField userAnswer = new JTextField("", 5);
+    Label memLabel=new Label("",Label.LEFT);
+    Label scoreLabel=new Label("");
+    int answer;
+    int questions = 0;
+    int corAnswers = 0;
 
     public MathApp(String name) {
         super(name);
@@ -15,13 +23,13 @@ public class MathApp extends JFrame {
 
     public void addComponentsToPane(final Container pane) {
         final JPanel topComps = new JPanel();
-        nonEditTxt.setText("12");
-        //nonEditTxt.setEditable(false);
-        Label memLabel=new Label("1+5 =",Label.LEFT);
+        userAnswer.setEditable(false);
+        setQuestionLabelAndAnswer();
         topComps.add(memLabel);
-        topComps.add(nonEditTxt);
+        topComps.add(userAnswer);
         final JPanel btnComps = new JPanel();
         JPanel bottomControls = new JPanel();
+        JButton clearBtn = new JButton("Clear");
         bottomControls.setLayout(new GridLayout(4,8));
 
         //Set up components preferred size
@@ -30,37 +38,55 @@ public class MathApp extends JFrame {
         int xny = (int)buttonSize.getWidth()+maxGap;//width n height the same
         btnComps.setPreferredSize(new Dimension(xny,xny));
 
-        //Add buttons to experiment with Grid Layout
+        //Add num buttons to Grid Layout
         int[] nums = { 1,2,3,4,5,6,7,8,9,0 };
         for (int num : nums)
         {
             btnComps.add(new ActionBtn(Integer.toString(num), this));
         }
-        btnComps.add(new JButton("Back"));
-        btnComps.add(new JButton("Clear"));
         btnComps.add(new JSeparator());
+        btnComps.add(clearBtn);
 
         //Add bottomControls to set up horizontal and vertical gaps
-        bottomControls.add(new Label("Score:1/3"));
-        bottomControls.add(applyButton);
+        setScoreLabelTxt();
+        bottomControls.add(scoreLabel);
+        bottomControls.add(submitBtn);
 
-        //Process the Apply gaps button press
-        applyButton.addActionListener(new ActionListener(){
+        //on clear
+        clearBtn.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                memLabel.setText("Swag");
-                nonEditTxt.setText("12");
-                createAndShowGUI();
-                //Get the horizontal gap value
-                //String horGap = (String)horGapComboBox.getSelectedItem();
-                //Set up the horizontal gap value
-                //experimentLayout.setHgap(Integer.parseInt(horGap));
-                //Set up the layout of the buttons
-                //experimentLayout.layoutContainer(btnComps);
+                userAnswer.setText("");
+            }
+        });
+        //on click of submit
+        submitBtn.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                if(Integer.parseInt(userAnswer.getText()) == answer){
+                    corAnswers++;
+                }
+                questions++;
+                setScoreLabelTxt();
+                setQuestionLabelAndAnswer();
+                userAnswer.setText("");
             }
         });
         pane.add(topComps, BorderLayout.NORTH);
         pane.add(btnComps, BorderLayout.CENTER);
         pane.add(bottomControls, BorderLayout.SOUTH);
+    }
+    private static int rand(int min, int max){
+        return (int)(Math.random() * ((max - min) + 1)) + min;
+    }
+
+    private void setScoreLabelTxt(){
+        scoreLabel.setText("Score: "+corAnswers+"/"+questions);
+    }
+
+    private void setQuestionLabelAndAnswer(){
+        int num1 = rand(1,5);
+        int num2 = rand(1,5);
+        memLabel.setText(num1+"+"+num2+" =");
+        answer = num1 + num2;
     }
 
     /**
@@ -70,13 +96,17 @@ public class MathApp extends JFrame {
      */
     private static void createAndShowGUI() {
         //Create and set up the window.
-        Learn frame = new Learn("Learn");
+        MathApp frame = new MathApp("MathApp");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //Set up the content pane.
         frame.addComponentsToPane(frame.getContentPane());
         //Display the window.
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public void numberClick(String num){
+        userAnswer.setText(userAnswer.getText() + num);
     }
 
     public static void main(String[] args) {
@@ -92,19 +122,14 @@ class ActionBtn extends JButton implements ActionListener
     /////////////////////////////////
     ActionBtn(String txt, MathApp clc)
     {
-        //setBounds(x,y,width,height);
         this.cl=clc;
+        this.setText(txt);
         this.cl.add(this);
-
         addActionListener(this);
-        System.out.println("here");
     }
     ////////////////////////////////////////////////
     public void actionPerformed(ActionEvent ev)
     {
-        System.out.println("here");
-        cl.nonEditTxt.setText("test");
-        //char memop=((MathApp)ev.getSource()).getLabel().charAt(1);
-        //cl.nonEditTxt.setText(memop);
+        this.cl.numberClick(this.getText());
     }//actionPerformed
 }
